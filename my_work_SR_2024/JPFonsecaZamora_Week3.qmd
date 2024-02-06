@@ -1,0 +1,129 @@
+---
+title: "Week 3 Problems"
+author:
+  - name: 
+      given: Juan Pablo
+      family: Fonseca-Zamora
+    id: jpfz
+    orcid: 0009-0006-7042-3828
+    email: ts18jpf@leeds.ac.uk
+    affiliation: 
+      - name: University of Leeds
+format: 
+  pdf
+pdf-engine: xelatex
+mainfont: Nunito Sans Light 
+sansfont: Nunito Sans
+monofont: Fira Code
+papersize: a4
+lang: en-GB
+geometry:
+  - top=30mm
+  - left=25mm
+  - right=25mm
+  - bottom=25mm
+---
+```{r,message=FALSE,include=FALSE}
+library(rethinking)
+library(dagitty)
+```
+
+**1.** The first two problems are based on the same data. The data in data(foxes)
+are 116 foxes from 30 different urban groups in England. These fox groups
+are like street gangs. Group size (groupsize) varies from 2 to 8 individuals.
+Each group maintains its own (almost exclusive) urban territory. Some territories
+are larger than others. The area variable encodes this information.
+Some territories also have more avgfood than others. And food influences
+the weight of each fox. Assume this DAG:
+
+```{r, echo=FALSE,fig.dim=c(1.5,1.5)}
+dag_foxes <- dagitty("dag{A->F;F->G;F->W;G->W }")
+
+coordinates(dag_foxes) <- list(x=c(A=1,W=1,F=0,G=2),y=c(A=0,W=2,F=1,G=1))
+
+drawdag(dag_foxes)
+```
+where $F$ is avgfood, $G$ is groupsize, $A$ is area, and $W$ is weight.
+
+Use the backdoor criterion and estimate the total causal influence of $A$ on
+$F$. What effect would increasing the area of a territory have on the amount
+of food inside it?
+
+***Solution***
+Based on the DAG, there are not other variables affecting A or mediating the effect
+of A on F, therefore it would be enough to produce a linear model
+
+```{r}
+data("foxes")
+d <- foxes
+
+d$G <- scale(d$groupsize)
+d$A <- scale(d$area)
+d$W <- scale(d$weight)
+d$F <- scale(d$avgfood)
+
+m1_a <- quap(
+  alist(
+    F ~ dnorm(mu,sigma),
+    mu  <- a + b_A*A,
+    a ~ dnorm(0,1),
+    b_A ~ dnorm(0,2),
+    sigma ~ dexp(1)
+    ),
+  data = d
+)
+
+precis(m1_a)
+```
+Based on the results, there is a positive effect of the change in area on the food availability, i.e. an increase of area is linked to an increase of avg food.
+
+**2.** Infer the total causal effect of adding food F to a territory on the weight
+W of foxes. Can you calculate the causal effect by simulating an intervention
+on food?
+
+***Solution***
+There are two paths through which food availability affects the weight of foxes. To determine
+the total causal effect it would be enough just to use $F$ and $W$
+
+```{r}
+m2 <- quap(
+  alist(
+    W ~ dnorm(mu,sigma),
+    mu  <- a + b_F*F,
+    a ~ dnorm(0,1),
+    b_F ~ dnorm(0,2),
+    sigma ~ dexp(1)
+    ),
+  data = d
+)
+
+precis(m2)
+```
+The total casual effect of $F$ is not conclusive.
+
+
+**3.** Infer the direct causal effect of adding food F to a territory on the weight
+W of foxes. In light of your estimates from this problem and the previous
+one, what do you think is going on with these foxes?
+
+***Solution***
+In this case, there is a *pipe* formed by F->G->W; so, to estimate the direct casual effect
+it is necessary to stratify by $G$
+
+```{r}
+m3 <- quap(
+  alist(
+    W ~ dnorm(mu,sigma),
+    mu  <- a + b_F*F + b_G*G,
+    a ~ dnorm(0,1),
+    b_F ~ dnorm(0,2),
+    b_G ~ dnorm(0,2),
+    sigma ~ dexp(1)
+    ),
+  data = d
+)
+
+precis(m3)
+```
+
+The direct effect of $F$ on $W$ is positive, while the effect of $G$ on $W$ is negative, which explains the results of the previous model.

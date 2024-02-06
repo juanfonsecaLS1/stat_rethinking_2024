@@ -1,0 +1,43 @@
+---
+title: "Week 4 Problems"
+author:
+  - name: 
+      given: Juan Pablo
+      family: Fonseca-Zamora
+    id: jpfz
+    orcid: 0009-0006-7042-3828
+    email: ts18jpf@leeds.ac.uk
+    affiliation: 
+      - name: University of Leeds
+format: 
+  pdf
+pdf-engine: xelatex
+mainfont: Nunito Sans Light 
+sansfont: Nunito Sans
+monofont: Fira Code
+papersize: a4
+lang: en-GB
+geometry:
+  - top=30mm
+  - left=25mm
+  - right=25mm
+  - bottom=25mm
+---
+
+
+**1.** Revisit the marriage, age, and happiness collider bias example from Chapter
+6. Run models m6.9 and m6.10 again (pages 178–179). Compare these
+two models using both PSIS and WAIC. Which model is expected to make
+better predictions, according to these criteria, and which model yields the
+correct causal inference?
+
+***Solution***
+
+
+**2.** Reconsider the urban fox analysis from last week’s homework. On the
+basis of PSIS and WAIC scores, which combination of variables best predicts
+body weight ($W$, weight)? What causal interpretation can you assign each
+coefficient (parameter) from the best scoring model?
+
+***Solution***
+
